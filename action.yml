@@ -2,11 +2,6 @@ name: 'Flutter mama 👵'
 description: 'Checks for tests and code structure'
 author: 'crossplatformsweden'
 
-inputs:
-  github_token:
-    description: 'GitHub token for authentication'
-    required: true
-
 outputs:
   missingTests:
     description: 'Boolean indicating if there are missing test files'
