@@ -3,17 +3,24 @@ import * as github from '@actions/github'
 import { promises as fs } from 'fs'
 import path from 'path'
 
+interface MissingTest {
+  originalPath: string
+  testPath: string
+  fileName: string
+  testFileName: string
+}
+
 export async function run(): Promise<void> {
   try {
     const token = process.env.GITHUB_TOKEN
-    const octokit = github.getOctokit(token)
+    const octokit = github.getOctokit(token || '')
 
-    const { repo, owner, issue_number } = github.context.issue
+    const { repo, owner, number: issue_number } = github.context.issue
 
-    const missingTests = []
+    const missingTests: MissingTest[] = []
     const libPath = path.join(process.cwd(), 'lib')
 
-    const checkFiles = async (dir: string) => {
+    const checkFiles = async (dir: string): Promise<void> => {
       const files = await fs.readdir(dir)
       for (const file of files) {
         const filePath = path.join(dir, file)
@@ -54,8 +61,8 @@ export async function run(): Promise<void> {
       repo,
       issue_number
     })
-    const mamaComment = comments.data.find(comment =>
-      comment.body.includes(commentMarker)
+    const mamaComment = comments.data.find(
+      comment => comment?.body?.includes(commentMarker)
     )
 
     if (missingTests.length > 0) {
@@ -70,7 +77,7 @@ export async function run(): Promise<void> {
         labels: [labelName]
       })
 
-      let commentBody = `${commentMarker}\n\n### Missing Test Files:\n${missingTests
+      const commentBody = `${commentMarker}\n\n### Missing Test Files:\n${missingTests
         .map(test => `- [ ] ${test.fileName} (Test file: ${test.testFileName})`)
         .join('\n')}`
       if (mamaComment) {
@@ -120,5 +127,3 @@ export async function run(): Promise<void> {
     if (error instanceof Error) core.setFailed(error.message)
   }
 }
-
-run()
