@@ -12,8 +12,8 @@ interface MissingTest {
 
 export async function run(): Promise<void> {
   try {
-    const token = process.env.GITHUB_TOKEN
-    const octokit = github.getOctokit(token || '')
+    const token = core.getInput('github_token', { required: true });
+    const octokit = github.getOctokit(token);
 
     const { repo, owner, number: issue_number } = github.context.issue
 
